@@ -1,5 +1,5 @@
 import mongoose,{Schema} from "mongoose";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { timeStamp } from "console";
 
@@ -37,13 +37,12 @@ const userSchema=new Schema({
     passwordResetExpires:Date
 },{timeStamp:true})
 
-userSchema.pre('save',async function(next){
+userSchema.pre('save',async function(){
     if(!this.isModified('password')){
-        return next();
+        return;
     }
     const salt=await bcrypt.genSalt(10);
     this.password=await bcrypt.hash(this.password,salt);
-    next();
 });
 
 userSchema.methods.createPasswordResetToken=function(){

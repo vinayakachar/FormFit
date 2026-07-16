@@ -1,5 +1,9 @@
-import User from "../../models/User.model";
+import User from "../../models/User.model.js";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import crypto from "crypto";
+import asyncHandler from "../../utils/asyncHandler.js";
+import {errorResponse, successResponse} from "../../utils/responseHandler.js";
 
 const generateToken=(id)=>{
     return jwt.sign({id},process.env.JWT_SECRET,{
@@ -40,7 +44,7 @@ const loginUser=asyncHandler(async(req,res)=>{
     
     const user=await User.findOne({email}).select("+password");
 
-    if(user && (await bycrypt.compare(passowrd,user.password))){
+    if(user && (await bcrypt.compare(password,user.password))){
         return successResponse(res,200,{
             _id:user._id,
             name:user.name,
@@ -71,7 +75,7 @@ const forgotPassword=asyncHandler(async(req,res)=>{
         return successResponse(res,200,{message:"If a user with that email exists, a token has been generated"});
     }
 
-    const resetToken=ueser.createPasswordResetToken();
+    const resetToken=user.createPasswordResetToken();
     await user.save({validateBeforeSave:false});
 
     successResponse(res,200,{message:"Token generated successfully.Use this token to reset your password",
@@ -97,7 +101,7 @@ const forgotPassword=asyncHandler(async(req,res)=>{
         return errorResponse(res, 400, 'Please provide a new password with at least 6 characters');
     }
 
-    user.password=req.body.passowrd;
+    user.password=req.body.password;
     user.passwordResetToken=undefined;
     user.passwordResetExpires=undefined;
     await user.save();

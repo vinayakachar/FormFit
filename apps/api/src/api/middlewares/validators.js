@@ -1,6 +1,6 @@
 import {validationResult,body} from 'express-validator';
-import {errorResponse} from '../utils/responseHandler';
-
+import {errorResponse} from '../../utils/responseHandler.js';
+    
 const handleValidationErrors=(req,res,next)=>{
     const errors=validationResult(req);
     if(!errors.isEmpty()){
