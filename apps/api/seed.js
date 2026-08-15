@@ -1,13 +1,14 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import Exercise from "./src/models/Exercise.model";
-import Tutorial from "./src/models/Tutorial.model";
+import Exercise from "./src/models/Exercise.model.js";
+import Tutorial from "./src/models/Tutorial.model.js";
+import User from "./src/models/User.model.js";
 
 dotenv.config();
 
-const conncectDB=async()=>{
+const connectDB=async()=>{
     try{
-        await mongoose.connect(process.env.Mongo_URI);
+        await mongoose.connect(process.env.MONGO_URI);
         console.log('MongoDB connected for the Seeding...')
     }catch(err){
         console.error(`Error: ${err.message}`);
@@ -15,7 +16,7 @@ const conncectDB=async()=>{
     }
 }
 
- exercises = [
+const exercises = [
     {
         name: 'Squat',
         description: 'A fundamental lower-body exercise that strengthens the quadriceps, glutes, and hamstrings.',
@@ -103,13 +104,21 @@ const tutorials = [
     }
 ];
 
-const imoportData=async()=>{
+const importData=async()=>{
     try{
         await Exercise.deleteMany();
         await Tutorial.deleteMany();
+        await User.deleteMany();
 
-        await Exercise.insertMany();
-        await Tutorial.insertMany();
+        await Exercise.insertMany(exercises);
+        await Tutorial.insertMany(tutorials);
+
+          await User.create({
+            name: 'adminvinayak',
+            email: 'adminvinayak@example.com',
+            password: 'adminpassword123',
+            role: 'admin'
+        });
 
         console.log('Data Imported! (Exercises & Tutorials)');
         process.exit();
@@ -123,6 +132,7 @@ const destroyData=async()=>{
     try{
         await Exercise.deleteMany();
         await Tutorial.deleteMany();
+        await User.deleteMany();
 
         console.log('Data Destroyed! (Exercises & Tutorials)');
         process.exit();

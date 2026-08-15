@@ -1,5 +1,5 @@
-import Exercise from '../models/Exercise.model.js';
-import Tutorial from '../models/Tutorial.model.js';
+import Exercise from '../../models/Exercise.model.js';
+import Tutorial from '../../models/Tutorial.model.js';
 
 const getAllExercise=async(req,res)=>{
     try{
@@ -75,7 +75,7 @@ const createExercise=async(req,res)=>{
 
 const updateExercise=async(req,res)=>{
     try{
-    const updatedExercise=await findByIdandUpdate(
+    const updatedExercise=await Exercise.findByIdAndUpdate(
         req.params.id,
         req.body,{new:true,runValidators:true}
     );
@@ -95,9 +95,9 @@ const updateExercise=async(req,res)=>{
     }
 }
 
-const deleteExercise=(req,res)=>{
+const deleteExercise=async(req,res)=>{
     try{
-        const deletedExercise=await findByIdandUpdate(req.params.id);
+        const deletedExercise=await Exercise.findByIdAndDelete(req.params.id);
 
         if(!deletedExercise){
             return res.status(404).json({message:'Exercise not found'})

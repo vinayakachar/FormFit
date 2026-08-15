@@ -23,6 +23,6 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users',userRoutes);
 app.use('/api/v1/tutorials',tutorialRoutes);
 
-app.use('/api/vl/exercises',exerciseRoutes);
+app.use('/api/v1/exercises',exerciseRoutes);
 
 export default app;
