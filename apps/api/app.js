@@ -10,6 +10,9 @@ import tutorialRoutes from "./src/api/routes/tutorials.routes.js";
 import workoutRoutes from "./src/api/routes/workout.routes.js";
 import dietRoutes from "./src/api/routes/diet.routes.js";
 import historyRoutes from "./src/api/routes/history.routes.js";
+import planRoutes from "./src/api/routes/plan.routes.js";
+import progressRoutes from "./src/api/routes/progress.routes.js";
+
 
 const app = express();
 
@@ -31,6 +34,9 @@ app.use('/api/v1/exercises',exerciseRoutes);
 app.use('/api/v1/workouts',workoutRoutes);
 app.use('/api/v1/diet',dietRoutes);
 app.use('/api/v1/history',historyRoutes);
+
+app.use('/api/v1/plans',planRoutes);
+app.use('/api/v1/progress',progressRoutes);
 
 app.use(globalErrorHandler);
 
