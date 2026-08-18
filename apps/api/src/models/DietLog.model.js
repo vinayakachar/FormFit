@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 
-const mealSchema=new Schem({
+const mealSchema=new Schema({
     key:{
         type:String,
         enum:['breakfast','lunch','snack','dinner'],
@@ -38,5 +38,5 @@ const dietLogSchema=new Schema({
 
 dietLogSchema.index({ user: 1, date: 1 }, { unique: true });
 
-const DietLog=mongoose.model('DieLog',dietLogSchmea);
+const DietLog=mongoose.model('DieLog',dietLogSchema);
 export default DietLog;
