@@ -36,7 +36,7 @@ FormFit is a full-stack AI-powered fitness application that generates personaliz
 Clone the repo:
 
 ```bash
-git clone https://github.com/Nandishreddy2903/FormFit.git
+git clone https://github.com/vinayakachar/FormFit.git
 cd FormFit
 ```
 
