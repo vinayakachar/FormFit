@@ -5,10 +5,11 @@ import { successResponse } from "../../utils/responseHandler.js";
 
 const getProgressAnalytics = asyncHandler(async (req, res) => {
     const userId = req.user.id;
-    const { period = 'weekly' } = req.query; 
+    const { period = 'weekly' } = req.query;
+    const now = new Date();
     let startDate;
 
-    if (period.toLowerCase() === 'monthly') {
+    if (String(period).toLowerCase() === 'monthly') {
         startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30);
     } else { // Default to weekly
         startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);

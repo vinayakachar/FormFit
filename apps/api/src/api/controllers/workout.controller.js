@@ -4,12 +4,15 @@ import User from "../../models/User.model.js";
 const startWorkout=async (req,res)=>{
     try{
         const userId=req.user.id;
-        const plannedExercises=req.body;
+        const body = Array.isArray(req.body) ? req.body : [req.body].filter(Boolean);
+        const plannedExercises = body
+            .map(item => typeof item === 'string' ? item : item?.exercise)
+            .filter(Boolean);
 
         const newWorkout= new Workout({
             user:userId,
             status:'in-progress',
-            plannedExercises:plannedExercises || [],
+            plannedExercises,
             exercises:[],
             date:new Date(),
         });
@@ -30,8 +33,8 @@ const startWorkout=async (req,res)=>{
 
 const endWorkout=async(req,res)=>{
     try{
-    const userId=req.user.id;
-    const workoutId=req.params.id;
+        const userId=req.user.id;
+        const workoutId=req.params.id;
 
         const workout = await Workout.findOne({ _id: workoutId, user: userId });
 
@@ -46,7 +49,7 @@ const endWorkout=async(req,res)=>{
         const now = new Date();
         const duration = Math.round((now - workout.createdAt) / (1000 * 60));
 
-           const METS = {
+        const METS = {
             'Squat': 5.0,
             'Lunge': 5.0,
             'Push-up': 8.0,
@@ -57,23 +60,24 @@ const endWorkout=async(req,res)=>{
             'Mountain Climber': 8.0,
         };
 
-        let userWeight=74
+        let userWeightKg = 74;
 
         try {
             const u = await User.findById(userId).select('weight');
             if (u && typeof u.weight === 'number' && u.weight > 0) userWeightKg = u.weight;
         } catch {}
 
+        const exercises = Array.isArray(req.body?.exercises) ? req.body.exercises : [];
         const exs = Array.isArray(exercises) && exercises.length ? exercises : [];
         const perExerciseMinutes = exs.length > 0 ? Math.max(1, duration) / exs.length : Math.max(1, duration);
         let calories = 0;
+
         for (const ex of exs) {
             const name = ex?.name || 'Workout';
             const met = METS[name] || 5.0;
             calories += met * 3.5 * userWeightKg / 200 * perExerciseMinutes;
         }
         calories = Math.round(calories);
-
 
         workout.status = 'completed';
         workout.exercises = exercises;
@@ -83,13 +87,13 @@ const endWorkout=async(req,res)=>{
 
         await workout.save();
 
-         res.status(201).json({
-            message: 'Workout session started successfully.',
-            workoutId: newWorkout._id,
-            data: newWorkout,
+        res.status(201).json({
+            message: 'Workout session completed successfully.',
+            workoutId: workout._id,
+            data: workout,
         });
-    }catch(error){
-        console.error('Start Workout Error:', error.message);
+    } catch(error) {
+        console.error('End Workout Error:', error.message);
         res.status(500).json({ message: 'Server Error' });
     }
 }
