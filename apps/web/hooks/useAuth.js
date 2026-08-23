@@ -67,6 +67,34 @@ export default function useAuth({requireAuth=false}={}){
         currentUser=payload.user;
         noftify();
 
-        useEffect(())
-    })
+        (async () => {
+      try {
+        const resp = await api.get("/users/me");
+        const fresh = (resp && (resp.data?.data ?? resp.data)) || {};
+        const merged = { ...currentUser, ...fresh };
+        localStorage.setItem("user", JSON.stringify(merged));
+        currentUser = merged;
+        notify();
+      } catch (e) {
+        // Non-fatal
+        console.warn("Failed to refresh user profile after login", e?.message);
+      }
+    })();
+    },[]);
+
+    const logout = useCallback(async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch (error) {
+      console.error("Logout failed", error);
+    } finally {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      currentUser = null;
+      notify();
+      router.push("/login");
+    }
+  }, [router]);
+
+  return { user, ready,login,logout};
 }
