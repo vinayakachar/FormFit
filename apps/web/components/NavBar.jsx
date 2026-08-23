@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import Link from "next/link";``
+import Link from "next/link";
 import Button from "./ui/Button";
 import useAuth from "@/hooks/useAuth";
 
 export default function NavBar(){
-    const {ready, user,logout}=useAuth();
+    const {user,ready,logout}=useAuth();
   
     if(!ready){
         return(
