@@ -19,7 +19,7 @@ export default function NavBar(){
     if(!user){
     return(
         <nav className="flex items-center gap-3">
-            <Button as={Link} href="/register" size="md">Get started</Button>
+            <Button as={Link} href="/register" size="md">Get Started</Button>
             <Button as={Link} href="/login" size="md" variant="secondary">Login</Button>
         </nav>
     )

@@ -62,8 +62,8 @@ const fade = (d = 0) => ({
                 <span className="bg-linear-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent">FormFit</span>{" "}
                 account
             </h1>
-            <p className=" mt-4 text-brand-muted">
-                Set up your profile to personalize recommendation, track BMI, and save workout history.
+            <p className="mt-4 text-brand-muted">
+                Set up your profile to personalize recommendations, track BMI, and save workout history.
             </p>
 
             <div className="mt-8 grid grid-cols-2 gap-4">
@@ -73,15 +73,15 @@ const fade = (d = 0) => ({
                 </div>
                 <div className="h-24 flex flex-col items-center justify-center rounded-2xl bg-brand-accent/15 border border-white/10">
                     <Activity className="h-8 w-8 text-brand-accent"/>
-                    <p className="mt-2 text-sm text-brand-muted">Wellness</p>
+                    <p className="mt-2 text-xs text-brand-muted">Wellness</p>
                 </div>
-                <div className="h-24 flex flex-col items-center justify-center bg-brand-primary/15 rounded-2xl border border-white/10">
+                <div className="h-24 flex flex-col items-center justify-center bg-brand-primary/10 rounded-2xl border border-white/10">
                     <LineChart className="h-8 w-8 text-brand-primary"/>
-                    <p className="mt-2 text-sm text-brand-muted">Analytics</p>
+                    <p className="mt-2 text-xs text-brand-muted">Analytics</p>
                 </div>
-                <div className="h-24 flex flex-col items-center justify-center rounded-2xl bg-brand-accent/15 border border-white/10">
+                <div className="h-24 flex flex-col items-center justify-center rounded-2xl bg-brand-accent/10 border border-white/10">
                     <Brain className="h-8 w-8 text-brand-accent"/>
-                    <p className="mt-2 text-sm text-brand-muted">AI Coach</p>
+                    <p className="mt-2 text-xs text-brand-muted">AI Coach</p>
                 </div>
             </div>
 
@@ -103,7 +103,7 @@ const fade = (d = 0) => ({
                                 name="name"
                                 value={form.name}
                                 onChange={onChange}
-                                placeholder="Your Full name"
+                                placeholder="Your full name"
                                 required/>
                             </div>
                             <div>
