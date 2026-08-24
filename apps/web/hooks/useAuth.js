@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import api from "@/lib/apiClient";
-import { jsx } from "react/jsx-runtime";
 
-const currentUser=null;
+let currentUser=null;
 const subscribers=new Set();
 function readSession(){
     try{
@@ -20,7 +19,7 @@ function readSession(){
     }
 }
 
-function noftify(){
+function notify(){
     for(const cb of subscribers) cb(currentUser);
 }
 export default function useAuth({requireAuth=false}={}){
@@ -33,7 +32,7 @@ export default function useAuth({requireAuth=false}={}){
         setUser(user);
 
         if(requireAuth && !token){
-            router.replace=("/login");
+          router.replace("/login");
             return;
         }
 
@@ -52,7 +51,7 @@ export default function useAuth({requireAuth=false}={}){
                 }
 
                 currentUser=merged;
-                noftify();
+                notify();
             }catch(e){
 
             }
@@ -65,7 +64,7 @@ export default function useAuth({requireAuth=false}={}){
         localStorage.setItem("token",payload.token);
         localStorage.setItem("user",JSON.stringify(payload.user));
         currentUser=payload.user;
-        noftify();
+        notify();
 
         (async () => {
       try {
