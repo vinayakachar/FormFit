@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/router";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
@@ -10,18 +9,12 @@ import api from "@/lib/apiClient";
 import { Dumbbell, Activity, LineChart, Brain } from "lucide-react";
 import {motion} from "framer-motion";
 
-export default function RegisterPage(){
-
 const fade = (d = 0) => ({
   initial: { opacity: 0, y: 12 },
   animate: { opacity: 1, y: 0, transition: { duration: 0.5, delay: d } },
 });
+export default function RegisterPage(){
 
-    const onChange=(e)=>{
-        setForm((s)=>({
-            ...s,[e.target.name]:e.target.value
-        }))
-    }
     const [form, setForm]=useState({
         name:"",
         email:"",
@@ -32,6 +25,12 @@ const fade = (d = 0) => ({
     const [loading,setLoading]=useState(false);
     const [err,setErr]=useState("");
 
+    const onChange=(e)=>{
+        setForm((s)=>({
+            ...s,[e.target.name]:e.target.value
+        }))
+    }
+
     const onSubmit=async(e)=>{
         e.preventDefault();
         setLoading(true);
@@ -39,9 +38,9 @@ const fade = (d = 0) => ({
 
         try{
             const registrationPayload={
-                name:from.name,
-                email:form.email,
-                password:form.password
+                name: form.name,
+                email: form.email,
+                password: form.password
             };
 
             await api.post("/auth/register",registrationPayload);
