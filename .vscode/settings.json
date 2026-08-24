@@ -1,0 +1,8 @@
+{
+  "editor.suggestOnTriggerCharacters": true,
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+  "tailwindCSS.experimental.configFile": "./apps/web/app/globals.css",
+  "previewjs.codelens": true
+}
