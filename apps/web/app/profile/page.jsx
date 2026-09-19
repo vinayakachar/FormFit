@@ -4,9 +4,11 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import useAuth from "@/hooks/useAuth";
+import api from "@/lib/apiClient";
 import { motion } from "framer-motion";
 import {Mail, Ruler, Target, User, Weight} from "lucide-react";
 import { useState,useMemo, useEffect, act } from "react";
+import Alert from "@/components/ui/Alert";
 
 const fade=(d=0)=>({
     initial : {opacity : 0, y:10},
@@ -106,7 +108,7 @@ export default function ProfilePage(){
                 const check=await api.get("/users/me");
                 updated=(check && (check.data?.data?? check.data)) || updateFromPut;
             }catch{}
-            if(typeof window !==undefined){
+            if(typeof window !=="undefined"){
                 const prev= JSON.parse(localStorage.getItem("user")||"{}");
                 localStorage.setItem("user",JSON.stringify({...prev, ...updated}))
             }
@@ -132,13 +134,15 @@ export default function ProfilePage(){
 
     return(
         <div className="space-y-8">
+            <div className="flex items-center justify-between">
             <div>
                 <h1 className="text-2xl font-semibold">Profile</h1>
                 <p className="text-sm text-brand-muted">Manage your personal info & training preferences.</p>
             </div>
+            </div>
 
-            <div className="grid gap-6 lg:grid-cols-3">
-                <motion.div {...fade(0)}>
+            <div className="grid lg:grid-cols-3 gap-6">
+                <motion.div {...fade(0)} className="lg:col-span-1">
                     <Card className="p-6" title="Your Overview">
                         <div className="flex items-center gap-4">
                             <div className="size-14 border border-white/10 rounded-full bg-white/5 flex items-center justify-center">
@@ -172,7 +176,7 @@ export default function ProfilePage(){
                     </Card>
                 </motion.div>
 
-                <motion.div {...fade(0.05)}>
+                <motion.div {...fade(0.05)} className="lg:col-span-2">
                     <Card title="Edit Profile" subtitle="Keep your details up to date" className="p-6">
                         <form onSubmit={onSave} className="space-y-4">
                             {error && <Alert>{error}</Alert>}

@@ -10,7 +10,7 @@ export default function Input({
     ...props
 }){
     const hasError=Boolean(error);
-    const hasSucess=Boolean(success) & !hasError;
+    const hasSuccess = Boolean(success) && !hasError;
 
     const ring =
     hasError
@@ -39,7 +39,7 @@ export default function Input({
                 <p className="mt-1 text-xs text-brand-danger">{error}</p>
             )}
 
-            {hasSucess && typeof success === "string" &&(
+            {hasSuccess && typeof success === "string" &&(
                 <p className="mt-1 text-xs text-brand-primary">{success}</p>
             ) }
 
