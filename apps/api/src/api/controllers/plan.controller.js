@@ -7,6 +7,7 @@ function buildPrompt(user, extra = {}) {
   const age = user?.age ? `${user.age}` : 'unknown';
   const height = user?.height ? `${user.height} cm` : 'unknown';
   const weight = user?.weight ? `${user.weight} kg` : 'unknown';
+  const dietaryPref=user?.dietaryPref || 'nonveg';
   const allowedExercises = Array.isArray(extra.allowedExercises) && extra.allowedExercises.length
     ? extra.allowedExercises
     : [];
@@ -21,11 +22,12 @@ User Profile:
 - Height: ${height}
 - Weight: ${weight}
 - Goals: ${goals || 'general fitness'}
+- Dietary Pref: ${dietaryPref} 
 
 Requirements:
 - Provide weeklyPlan: array of 7 days with day, focus, items (array of exercises), and optional sets/reps or duration per item.
 - IMPORTANT: For weeklyPlan.items, you MUST choose exercise names ONLY from the Allowed Exercises list below, EXACTLY as written (case and punctuation must match). Do not invent, pluralize, or use synonyms.
-- Provide diet: macros (per kg bodyweight: protein, carbs, fats), guidance note, and sampleMeals (breakfast, lunch, snack, dinner strings).
+- Provide diet: macros (per kg bodyweight: protein, carbs, fats), guidance note, and sampleMeals (breakfast, lunch, snack, dinner strings).All meals MUST strictly follow the user's Dietary Preference (${dietaryPref}).
 - Provide calories: maintainLow, maintainHigh (daily kcal), and delta (e.g., -400 for fat loss or +250 for muscle).
 - Keep exercises bodyweight or light equipment by default.
 - Keep language concise.

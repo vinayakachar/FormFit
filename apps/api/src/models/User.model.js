@@ -33,6 +33,11 @@ const userSchema=new Schema({
         type:[String],
         default:[]
     },
+    dieteryPref:{
+        type:String,
+        enum:['veg','nonveg','vegan'],
+        default:'nonveg'
+    },
     passwordResetToken:String,
     passwordResetExpires:Date
 },{timeStamp:true})

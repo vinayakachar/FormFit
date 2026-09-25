@@ -12,7 +12,8 @@ const getUserProfile=async(req,res)=>{
                 age:user.age,
                 height:user.height,
                 weight:user.weight,
-                fitnessGoals:user.fitnessGoals
+                fitnessGoals:user.fitnessGoals,
+                dietaryPref:user.dietaryPref
             })
         }
         else{
@@ -39,6 +40,7 @@ const updateUserProfile=async(req,res)=>{
             user.height=req.body.height || user.height;
             user.weight=req.body.weight || user.weight;
             user.fitnessGoals=req.body.fitnessGoals || user.fitnessGoals;
+            user.dieteryPref=req.body.dietaryPref || user.dieteryPref;
 
             const updatedUser=await user.save();
 
@@ -50,6 +52,7 @@ const updateUserProfile=async(req,res)=>{
                 weight: updatedUser.weight,
                 height: updatedUser.height,
                 fitnessGoals: updatedUser.fitnessGoals,
+                dietaryPref: updatedUser.dieteryPref
             })
         }
         else{
