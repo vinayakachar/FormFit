@@ -23,7 +23,8 @@ export default function ProfilePage(){
         age:"",
         height:"",
         weight:"",
-        fitnessGoals:""
+        fitnessGoals:"",
+        dietaryPref:"",
     });
 
     const [original, setOriginal] = useState(null);
@@ -48,6 +49,7 @@ export default function ProfilePage(){
                         height: u.height ?? "",
                         weight: u.weight ?? "",
                         fitnessGoals: u.fitnessGoals || "",
+                        dietaryPref:u.dietaryPref||"nonveg"
         };
         setForm(initial);
         setOriginal(initial);
@@ -61,6 +63,7 @@ export default function ProfilePage(){
           height: u.height ?? "",
           weight: u.weight ?? "",
           fitnessGoals: u.fitnessGoals || "",
+          dietaryPref:u.dietaryPref||"nonveg"
         };
         setForm(initial);
         setOriginal(initial);
@@ -98,6 +101,7 @@ export default function ProfilePage(){
                 height: form.height ? Number(form.height) :undefined,
                 weight: form.weight ? Number(form.weight) :undefined,
                 fitnessGoals: form.fitnessGoals,
+                dietarypref:form.dietaryPref,
             }
             const resp= await api.put("/users/me", payload);
             const updateFromPut=(resp && (resp.data?.data?? resp.data)) || {};
@@ -119,6 +123,7 @@ export default function ProfilePage(){
         height: updated.height ?? form.height,
         weight: updated.weight ?? form.weight,
         fitnessGoals: updated.fitnessGoals ?? form.fitnessGoals,
+        dietaryPref: updated.dietaryPref ?? form.dietaryPref
       };
       setForm(next);
       setOriginal(next);
@@ -239,6 +244,19 @@ export default function ProfilePage(){
                                 placeholder="e.g., 75"
                                 className="pl-10"/>
                                 </div>
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block text-sm font-medium">Dietary Preference</label>
+                                <select
+                                name="dietaryPref"
+                                value={form.dietarypref}
+                                onChange={onchange}
+                                className="w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-white focus:outline-none">
+                                    <option value="nonveg" className="bg-gray-900 text-white">Non-veg</option>
+                                    <option value="veg" className="bg-gray-900 text-white">Veg</option>
+                                    <option value="vegan" className="bg-gray-900 text-white">Vegan</option>
+                                </select>
                             </div>
 
                             <div className="sm:col-span-2">
