@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -14,6 +15,7 @@ const fade = (d = 0) => ({
   animate: { opacity: 1, y: 0, transition: { duration: 0.5, delay: d } },
 });
 export default function RegisterPage(){
+    const router = useRouter();
 
     const [form, setForm]=useState({
         name:"",
@@ -44,6 +46,7 @@ export default function RegisterPage(){
             };
 
             await api.post("/auth/register",registrationPayload);
+            router.push("/login");
         }catch(error){
             setErr(error?.response?.data?.message || "Registration failed. Try again.");
         }
