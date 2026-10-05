@@ -178,7 +178,7 @@ function buildMeals(planDiet,totals,log){
     if (log && Array.isArray(log.meals)) {
     for (const lm of log.meals) {
       const idx = meals.findIndex(m => m.key === lm.key);
-      if (idx >= 0) meals[idx] = { ...meals[idx], ...lm };
+            if (idx >= 0) meals[idx].status = lm.status || meals[idx].status;
     }
   }
   
