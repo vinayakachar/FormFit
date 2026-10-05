@@ -66,7 +66,7 @@ export default function HomePage(){
                     </ul>
                 </motion.div>
                 <motion.div {...fade(0.5)}>
-                    <div>
+                    <div className="card-glass p-6">
                         <h3 className="text-lg font-semibold mb-2">Under the hood</h3>
                         <p className="text-brand-muted">
                             APIs:<span className="text-brand-text ">/auth</span>,<span className="text-brand-text">/users</span>,<span className="text-brand-text">/workouts</span><br/>
