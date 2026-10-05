@@ -83,16 +83,18 @@ export default function AIPlanPage(){
     useEffect(() =>{
         try{
             const key=localStorage.getItem("llm_key_google");
-            if(k) {setApiKey(k);setRemember(true);}
+            if(key) {setApiKey(key);setRemember(true);}
         }catch{}
     },[]);
 
     useEffect(()=>{
         (async()=>{
             try{
-                const {data}=api.get("/plans/latest");
+                const {data}=await api.get("/plans/latest");
                 if (data?.plan) setRemotePlan(data.plan.planObject ? { planObject: data.plan.planObject } : { planText: data.plan.planText });
-            }catch{}
+            }catch(error){
+                console.error("Failed to load latest plan:", error?.response?.data || error?.message);
+            }
         })();
     },[]);
     
@@ -100,7 +102,7 @@ export default function AIPlanPage(){
         if(!apiKey) return alert("Please Enter your Google Gemini API Key");
         setLoading(true);
         try{
-        const requestData={apiKey,provider:"google",model:"gemini-flash-latest",save};
+        const requestData={apiKey,provider:"google",save};
         console.log("handleGenerate request",requestData);
         const {data}=await api.post("/plans/generate",requestData);
         console.log("handleGenerate response:",data);
@@ -114,11 +116,6 @@ export default function AIPlanPage(){
         console.log("handleGenerate setting remotePlan:", rp);
         setRemotePlan(rp);
 
-        if (remember) {
-        try { localStorage.setItem("llm_key_google", apiKey); } catch {}
-        } else {
-        try { localStorage.removeItem("llm_key_google"); } catch {}
-        }
         alert("Plan generated successfully!");
         }catch(e){
             console.log("handleGenerate error:", e?.response?.data || e?.message);
@@ -188,10 +185,26 @@ export default function AIPlanPage(){
                     </div>
                 
                     <div className="flex items-center gap-2">
-                        <input type="password" value={apiKey} onChange={(e)=>setApiKey(e.target.value)} placeholder="AIza..." 
+                        <input type="password" value={apiKey} onChange={(e)=>{
+                            const value=e.target.value;
+                            setApiKey(value);
+                            if(remember){
+                                try{
+                                    if(value) localStorage.setItem("llm_key_google",value);
+                                    else localStorage.removeItem("llm_key_google");
+                                }catch{}
+                            }
+                        }} placeholder="AIza..." 
                             className="bg-white/5 border border-white/10 rounded-xl py-2 px-3 w-full focus:outline-none"/>
                         <label className="text-xs text-brand-muted flex items-center gap-2">
-                        <input type="checkbox" checked={remember} onChange={(e)=>setRemember(e.target.checked)}/>Remeber
+                        <input type="checkbox" checked={remember} onChange={(e)=>{
+                            const checked=e.target.checked;
+                            setRemember(checked);
+                            try{
+                                if(checked && apiKey) localStorage.setItem("llm_key_google",apiKey);
+                                else if(!checked) localStorage.removeItem("llm_key_google");
+                            }catch{}
+                        }}/>Remember
                         </label>
                     </div>
 
