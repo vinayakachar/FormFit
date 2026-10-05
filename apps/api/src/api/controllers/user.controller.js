@@ -13,7 +13,7 @@ const getUserProfile=async(req,res)=>{
                 height:user.height,
                 weight:user.weight,
                 fitnessGoals:user.fitnessGoals,
-                dietaryPref:user.dietaryPref
+                dietaryPref:user.dieteryPref
             })
         }
         else{

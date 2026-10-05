@@ -7,7 +7,7 @@ function buildPrompt(user, extra = {}) {
   const age = user?.age ? `${user.age}` : 'unknown';
   const height = user?.height ? `${user.height} cm` : 'unknown';
   const weight = user?.weight ? `${user.weight} kg` : 'unknown';
-  const dietaryPref=user?.dietaryPref || 'nonveg';
+  const dietaryPref=user?.dieteryPref || user?.dietaryPref || 'nonveg';
   const allowedExercises = Array.isArray(extra.allowedExercises) && extra.allowedExercises.length
     ? extra.allowedExercises
     : [];
@@ -51,94 +51,116 @@ JSON Schema:
   return header;
 }
 
-async function callGemini({ apiKey, model = 'gemini-2.5-flash', prompt }) {
-  const path = `/v1/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-  const options = {
-    hostname: 'generativelanguage.googleapis.com',
-    port: 443,
-    path,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-  };
+function isModelFallbackError(error) {
+  const message = String(error?.message || '').toLowerCase();
+  return [429, 503].includes(error?.statusCode) ||
+    ['RESOURCE_EXHAUSTED', 'UNAVAILABLE'].includes(error?.apiStatus) ||
+    /high demand|overload|rate.?limit|quota|temporarily unavailable|not found|not supported|no longer available|not available to new users|deprecated|retired/.test(message);
+}
+
+async function geminiRequest({ path, method = 'GET', body }) {
+  const response = await new Promise((resolve, reject) => {
+    const req = https.request({
+      hostname: 'generativelanguage.googleapis.com',
+      port: 443,
+      path,
+      method,
+      headers: body ? { 'Content-Type': 'application/json' } : {},
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => resolve({ statusCode: res.statusCode, data }));
+    });
+    req.on('error', reject);
+    if (body) req.write(body);
+    req.end();
+  });
+
+  let parsed;
+  try {
+    parsed = JSON.parse(response.data);
+  } catch {
+    const error = new Error(`Invalid JSON response from provider: ${response.data.substring(0, 200)}`);
+    error.statusCode = response.statusCode;
+    throw error;
+  }
+
+  if (parsed.error || response.statusCode >= 400) {
+    const error = new Error(parsed.error?.message || `Gemini API returned HTTP ${response.statusCode}`);
+    error.statusCode = response.statusCode;
+    error.apiStatus = parsed.error?.status;
+    throw error;
+  }
+
+  return parsed;
+}
+
+async function listGeminiModels(apiKey) {
+  const models = [];
+  let pageToken;
+
+  do {
+    const query = new URLSearchParams({ key: apiKey, pageSize: '1000' });
+    if (pageToken) query.set('pageToken', pageToken);
+    const result = await geminiRequest({ path: `/v1beta/models?${query}` });
+    models.push(...(result.models || []));
+    pageToken = result.nextPageToken;
+  } while (pageToken);
+
+  return models;
+}
+
+async function callGemini({ apiKey, model = 'gemini-3.8-flash', prompt }) {
   const body = JSON.stringify({
     contents: [{ role: 'user', parts: [{ text: prompt }]}],
   });
+  const generateWithModel = async (modelId) => {
+    console.log('Making Gemini API call with model:', modelId);
+    const parsed = await geminiRequest({
+      path: `/v1beta/models/${encodeURIComponent(modelId)}:generateContent?key=${encodeURIComponent(apiKey)}`,
+      method: 'POST',
+      body,
+    });
+    const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    if (!text.trim()) throw new Error('Provider returned empty response');
+    return { raw: parsed, text, model: modelId };
+  };
 
-  console.log('Making Gemini API call with model:', model);
+  const preferredModel = String(model || 'gemini-3.8-flash').replace(/^models\//, '');
+  try {
+    return await generateWithModel(preferredModel);
+  } catch (primaryError) {
+    if (!isModelFallbackError(primaryError)) throw primaryError;
+    console.warn(`Gemini model ${preferredModel} unavailable; looking for a fallback model.`);
 
-  const maxRetries = 3;
-  let lastError;
-
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    let availableModels;
     try {
-      const resText = await new Promise((resolve, reject) => {
-        const req = https.request(options, (res) => {
-          let data = '';
-          res.on('data', (chunk) => { data += chunk; });
-          res.on('end', () => { resolve(data); });
-        });
-        req.on('error', (error) => {
-          console.error('Gemini API request error:', error.message);
-          reject(error);
-        });
-        req.write(body);
-        req.end();
-      });
+      availableModels = await listGeminiModels(apiKey);
+    } catch (listError) {
+      console.warn('Could not list Gemini models:', listError.message);
+      throw primaryError;
+    }
 
-      let parsed;
+    const fallbackModels = [...new Set(availableModels
+      .filter((item) => item.supportedGenerationMethods?.includes('generateContent'))
+      .map((item) => item.baseModelId || item.name?.replace(/^models\//, ''))
+      .filter((modelId) => modelId && modelId !== preferredModel && !/^gemini-(?:1\.\d+|2\.5)-/i.test(modelId)))]
+      .sort((a, b) => Number(/flash/i.test(b)) - Number(/flash/i.test(a)))
+      .slice(0, 3);
+
+    let lastError = primaryError;
+    for (const fallbackModel of fallbackModels) {
       try {
-        parsed = JSON.parse(resText);
-        console.log('Gemini API response status:', parsed.candidates ? 'Success' : 'Error');
-      } catch (parseError) {
-        console.error('Failed to parse Gemini response as JSON:', parseError.message);
-        throw new Error(`Invalid JSON response from provider: ${resText.substring(0, 200)}`);
-      }
-
-      // Check for API errors in the response
-      if (parsed.error) {
-        const errorMessage = parsed.error.message || 'Unknown error';
-        console.error('Gemini API returned error:', errorMessage);
-
-        // Check if it's a retryable error (overloaded or rate limit)
-        if (errorMessage.toLowerCase().includes('overloaded') ||
-            errorMessage.toLowerCase().includes('rate limit') ||
-            errorMessage.toLowerCase().includes('quota')) {
-          if (attempt < maxRetries) {
-            const delay = Math.pow(2, attempt) * 1000; // Exponential backoff: 1s, 2s, 4s
-            console.log(`Retrying Gemini API call in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
-            await new Promise(resolve => setTimeout(resolve, delay));
-            lastError = new Error(`Gemini API error: ${errorMessage}`);
-            continue;
-          }
-        }
-
-        throw new Error(`Gemini API error: ${errorMessage}`);
-      }
-
-      const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      console.log('Extracted text length:', text.length);
-
-      if (!text || text.trim() === '') {
-        console.error('Empty text extracted from response. Full parsed response:', JSON.stringify(parsed, null, 2));
-        throw new Error('Provider returned empty response');
-      }
-
-      return { raw: parsed, text };
-    } catch (error) {
-      lastError = error;
-      if (attempt < maxRetries && (error.message.toLowerCase().includes('overloaded') ||
-                                    error.message.toLowerCase().includes('rate limit') ||
-                                    error.message.toLowerCase().includes('quota'))) {
-        const delay = Math.pow(2, attempt) * 1000;
-        console.log(`Retrying due to error in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-      } else {
-        break;
+        return await generateWithModel(fallbackModel);
+      } catch (error) {
+        lastError = error;
+        if (!isModelFallbackError(error)) throw error;
+        console.warn(`Gemini fallback model ${fallbackModel} failed:`, error.message);
       }
     }
-  }
 
-  throw lastError;
+    throw lastError;
+  }
 }
 
 function tryExtractJson(text) {
@@ -158,7 +180,7 @@ function tryExtractJson(text) {
 const generatePlan = async (req, res) => {
   try {
     const user = req.user;
-    const { apiKey, provider = 'google', model = 'gemini-2.5-flash', save = false } = req.body || {};
+    const { apiKey, provider = 'google', model = 'gemini-3.8-flash', save = false } = req.body || {};
     if (!apiKey) return res.status(400).json({ message: 'Missing apiKey (BYOK)' });
     if (provider !== 'google') return res.status(400).json({ message: 'Only provider "google" (Gemini) is supported for now' });
 
@@ -168,7 +190,7 @@ const generatePlan = async (req, res) => {
 
     const randomSeed = Date.now() + Math.random();
     const prompt = buildPrompt(user, { allowedExercises: allowedNames, randomSeed });
-    const { text } = await callGemini({ apiKey, model, prompt });
+    const { text, model: usedModel } = await callGemini({ apiKey, model, prompt });
     let planObject = tryExtractJson(text);
 
     // Post-process planObject to strictly use allowed exercise names
@@ -240,13 +262,13 @@ const generatePlan = async (req, res) => {
 
     let saved = null;
     if (save) {
-      const doc = new Plan({ user: user._id, provider, model, promptVersion: 'v1', planObject: planObject || undefined, planText: planObject ? undefined : text });
+      const doc = new Plan({ user: user._id, provider, model: usedModel, promptVersion: 'v1', planObject: planObject || undefined, planText: planObject ? undefined : text });
       saved = await doc.save();
     }
 
     return res.status(200).json({
       provider,
-      model,
+      model: usedModel,
       planObject,
       planText: planObject ? undefined : text,
       savedId: saved?._id,
@@ -261,7 +283,7 @@ const generatePlan = async (req, res) => {
 const savePlan = async (req, res) => {
   try {
     const user = req.user;
-    let { planObject, planText, provider = 'google', model = 'gemini-2.5-flash' } = req.body || {};
+    let { planObject, planText, provider = 'google', model = 'gemini-3.8-flash' } = req.body || {};
     if (!planObject && (!planText || planText.trim() === '')) return res.status(400).json({ message: 'Missing planObject or planText' });
     // If planObject present, sanitize items against DB exercise names
     if (planObject && Array.isArray(planObject.weeklyPlan)) {
