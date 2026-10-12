@@ -12,7 +12,7 @@ export default function RootLayout({ children }){
                 <header className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
                     <Link href="/" className="text-xl font-bold">
                     <span className="text-brand-primary">Form</span>
-                    <span className="text-brand-Primary">Fit</span>
+                    <span className="text-brand-accent">Fit</span>
                     </Link>
                     <NavBar/>
                 </header>
