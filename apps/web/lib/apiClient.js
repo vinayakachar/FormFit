@@ -5,7 +5,7 @@ const apiUrl = typeof process !== "undefined" && process.env
     : undefined;
 
 const api = axios.create({
-    baseURL: apiUrl || "http://localhost:4000/api/v1"
+    baseURL: apiUrl || "http://localhost:4001/api/v1"
 })
 
 api.interceptors.request.use((config)=>{
