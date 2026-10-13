@@ -104,4 +104,85 @@ const getProgressAnalytics = asyncHandler(async (req, res) => {
     });
 });
 
-export {getProgressAnalytics};
+const getDashboardStats = asyncHandler(async (req, res) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const currentWeekStart = new Date(today);
+    currentWeekStart.setDate(currentWeekStart.getDate() - ((currentWeekStart.getDay() + 6) % 7));
+
+    const previousWeekStart = new Date(currentWeekStart);
+    previousWeekStart.setDate(previousWeekStart.getDate() - 7);
+
+    const monthStart = new Date(currentWeekStart);
+    monthStart.setDate(monthStart.getDate() - 21);
+
+    const workouts = await Workout.find({
+        user: req.user.id,
+        status: 'completed',
+        endTime: { $gte: monthStart },
+    }).select('endTime duration caloriesBurned exercises').lean();
+
+    const weeklyReps = Array(7).fill(0);
+    const monthlyCalories = Array(4).fill(0);
+    const currentWeek = { calories: 0, reps: 0, minutes: 0, scores: [] };
+    const previousWeek = { calories: 0, reps: 0, minutes: 0 };
+    const weekInMilliseconds = 7 * 24 * 60 * 60 * 1000;
+
+    workouts.forEach((workout) => {
+        const date = new Date(workout.endTime);
+        const calories = Number(workout.caloriesBurned) || 0;
+        const reps = (workout.exercises || []).reduce(
+            (total, exercise) => total + (Number(exercise.reps) || 0) * (Number(exercise.sets) || 0),
+            0,
+        );
+        const duration = Number(workout.duration) || 0;
+        const weekIndex = Math.floor((date.getTime() - monthStart.getTime()) / weekInMilliseconds);
+
+        if (weekIndex >= 0 && weekIndex < monthlyCalories.length) {
+            monthlyCalories[weekIndex] += calories;
+        }
+
+        if (date >= currentWeekStart) {
+            const dayIndex = (date.getDay() + 6) % 7;
+            weeklyReps[dayIndex] += reps;
+            currentWeek.calories += calories;
+            currentWeek.reps += reps;
+            currentWeek.minutes += duration;
+            (workout.exercises || []).forEach((exercise) => {
+                if (Number.isFinite(exercise.formScore)) currentWeek.scores.push(exercise.formScore);
+            });
+        } else if (date >= previousWeekStart) {
+            previousWeek.calories += calories;
+            previousWeek.reps += reps;
+            previousWeek.minutes += duration;
+        }
+    });
+
+    const percentageDelta = (current, previous) => previous > 0
+        ? Number((((current - previous) / previous) * 100).toFixed(1))
+        : 0;
+    const formAccuracy = currentWeek.scores.length
+        ? Math.round(currentWeek.scores.reduce((total, score) => total + score, 0) / currentWeek.scores.length)
+        : 0;
+
+    return successResponse(res, 200, {
+        summary: {
+            caloriesWeek: currentWeek.calories,
+            totalRepsWeek: currentWeek.reps,
+            formAccuracy,
+            minutesTrained: currentWeek.minutes,
+            deltas: {
+                calories: percentageDelta(currentWeek.calories, previousWeek.calories),
+                reps: percentageDelta(currentWeek.reps, previousWeek.reps),
+                accuracy: 0,
+                minutes: percentageDelta(currentWeek.minutes, previousWeek.minutes),
+            },
+        },
+        weeklyReps,
+        monthlyCalories,
+        accuracyHistory: [],
+    });
+});
+
+export {getDashboardStats, getProgressAnalytics};
