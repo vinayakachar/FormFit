@@ -62,7 +62,7 @@ export default function DashboardPage(){
   }, [ready, user]);
 
   useEffect(()=>{
-    if(!ready && !user) return;
+    if(!ready || !user) return;
     let active=true;
     (async()=>{
         try{
