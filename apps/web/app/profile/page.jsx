@@ -16,7 +16,7 @@ const fade=(d=0)=>({
 })
 export default function ProfilePage(){
 
-    const {user: sessionUser,ready} =useAuth({requireAuth:false});
+    const {user: sessionUser,ready} =useAuth({requireAuth:true});
     const [form,setForm]=useState({
         name:"",
         email:"",
@@ -135,7 +135,7 @@ export default function ProfilePage(){
         }
   }
 
-   if (!ready || loading) return null;
+   if (!ready || !sessionUser || loading) return null;
 
     return(
         <div className="space-y-8">

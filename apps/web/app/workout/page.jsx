@@ -64,7 +64,7 @@ export default function WorkoutPage() {
 
 function WorkoutContent() {
   const searchParams = useSearchParams();
-  const { user, ready } = useAuth({ requireAuth: false });
+  const { user, ready } = useAuth({ requireAuth: true });
   const todayIso = useMemo(() => toISODate(new Date()), []);
   const [running, setRunning] = useState(false);
   const runningRef = useRef(false);
@@ -343,11 +343,10 @@ function WorkoutContent() {
     let active = true;
     (async () => {
       if (!ready || !exercise) return;
-      // Skip example fetch for duration/manual cardio-like items or unknown exercises
+      // Skip example fetch for duration/manual cardio-like items
       const norm = normalizeExerciseName(exercise);
       const isManual = norm.manual || (dayItems && dayItems[currentIndex] && (dayItems[currentIndex].manual || dayItems[currentIndex].isDuration));
-      const inLibrary = exercisesList.some((x) => x.name === norm.canonical);
-      if (isManual || !inLibrary) {
+      if (isManual) {
         if (!active) return;
         setExample({ loading: false, url: null, name: exercise, source: null });
         return;
@@ -364,7 +363,7 @@ function WorkoutContent() {
       }
     })();
     return () => { active = false; };
-  }, [exercise, ready, dayItems, currentIndex, exercisesList]);
+  }, [exercise, ready, dayItems, currentIndex]);
 
   // Optional: warm up the pose model to reduce start delay
   useEffect(() => {
@@ -380,7 +379,7 @@ function WorkoutContent() {
     })();
   }, []);
 
-  if (!ready) return null;
+  if (!ready || !user) return null;
 
   async function startSession(opts = {}) {
     const ensureCreate = opts.ensureCreate !== false; // default true
@@ -1777,11 +1776,7 @@ function toYouTubeEmbed(url) {
   try {
     const u = new URL(url);
     const embed = (id) => {
-      const embedUrl = new URL(`/embed/${encodeURIComponent(id)}`, "https://www.youtube.com");
-      embedUrl.searchParams.set("autoplay", "1");
-      embedUrl.searchParams.set("mute", "1");
-      embedUrl.searchParams.set("playsinline", "1");
-      return embedUrl.toString();
+      return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=0&rel=0&playsinline=1`;
     };
 
     if (u.hostname.includes('youtu.be')) {
@@ -1790,7 +1785,6 @@ function toYouTubeEmbed(url) {
     if (u.hostname.includes('youtube.com')) {
       const id = u.searchParams.get('v');
       if (id) return embed(id);
-      // handle shorts or embed forms
       const parts = u.pathname.split('/').filter(Boolean);
       if (parts[0] === 'shorts' && parts[1]) return embed(parts[1]);
       if (parts[0] === 'embed' && parts[1]) return embed(parts[1]);
@@ -1819,7 +1813,18 @@ function isDirectVideo(url) {
   return /(\.mp4|\.webm|\.ogg)(\?.*)?$/i.test(url);
 }
 
+function getGoogleDriveStreamUrl(url) {
+  if (!url) return null;
+  const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (match && match[1]) {
+    return `/api/video-proxy?id=${encodeURIComponent(match[1])}`;
+  }
+  return null;
+}
+
 function renderEmbeddedVideo(url) {
+  if (!url) return null;
+
   if (/youtube\.com|youtu\.be/.test(url)) {
     const src = toYouTubeEmbed(url);
     return (
@@ -1848,23 +1853,29 @@ function renderEmbeddedVideo(url) {
       </div>
     );
   }
-  if (/drive\.google\.com/.test(url)) {
-    const previewUrl = url.replace(/\/view(\?.*)?$/, '/preview').replace(/\/edit(\?.*)?$/, '/preview');
+  if (/drive\.google\.com|drive\.usercontent\.google\.com/.test(url)) {
+    const streamUrl = getGoogleDriveStreamUrl(url) || url;
     return (
-      <div className="aspect-video w-full overflow-hidden rounded-2xl border border-white/10">
-        <iframe
-          src={previewUrl}
-          title="Exercise Example"
-          className="w-full h-full"
-          allow="autoplay; fullscreen"
-          allowFullScreen
+      <div className="aspect-video w-full overflow-hidden rounded-2xl border border-white/10 bg-black">
+        <video
+          key={streamUrl}
+          src={streamUrl}
+          controls
+          playsInline
+          autoPlay
+          muted
+          loop
+          preload="auto"
+          className="w-full h-full object-contain"
         />
       </div>
     );
   }
   if (isDirectVideo(url)) {
     return (
-      <video src={url} controls className="w-full rounded-2xl border border-white/10" preload="metadata" />
+      <div className="aspect-video w-full overflow-hidden rounded-2xl border border-white/10 bg-black">
+        <video key={url} src={url} controls playsInline autoPlay muted loop className="w-full h-full object-contain" preload="auto" />
+      </div>
     );
   }
   return (

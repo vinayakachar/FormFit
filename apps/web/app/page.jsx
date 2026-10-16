@@ -5,12 +5,14 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import { animate, motion } from "framer-motion";
 
+import useAuth from "@/hooks/useAuth";
+
 const fade=(delay=0)=>({
     initial : {opacity : 0 , y:12},
     animate : {opacity : 1 , y:0 , transition :{duration:0.6, delay}}
 })
 export default function HomePage(){
-
+    const { user, ready } = useAuth();
 
     return(
         <div className="space-y-24">
@@ -31,8 +33,17 @@ export default function HomePage(){
                 </motion.p>
 
                 <motion.div {...fade(0.35)} className="mt-8 flex gap-4">
-                    <Button as={Link} href="/register" size="lg">Get Started</Button>
-                    <Button as={Link} href="/login" size="lg" variant="secondary">Login</Button>
+                    {ready && user ? (
+                        <>
+                            <Button as={Link} href="/dashboard" size="lg">Go to Dashboard</Button>
+                            <Button as={Link} href="/workout" size="lg" variant="secondary">Start Workout</Button>
+                        </>
+                    ) : (
+                        <>
+                            <Button as={Link} href="/register" size="lg">Get Started</Button>
+                            <Button as={Link} href="/login" size="lg" variant="secondary">Login</Button>
+                        </>
+                    )}
                 </motion.div>
 
                 <motion.div 

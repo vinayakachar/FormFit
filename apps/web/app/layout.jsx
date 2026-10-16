@@ -1,4 +1,4 @@
-export const metadata = {titel:"FormFit",description:"AI Fitness Coach"};
+export const metadata = { title: "FormFit", description: "AI Fitness Coach" };
 
 import "./globals.css";
 import Link from "next/link";

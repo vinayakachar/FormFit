@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
@@ -18,7 +18,13 @@ const fade=(d=0)=>({
 export default function LoginPage(){
 
     const router=useRouter();
-    const {login}=useAuth();
+    const { user, ready, login }=useAuth();
+
+    useEffect(() => {
+        if (ready && user) {
+            router.replace("/dashboard");
+        }
+    }, [ready, user, router]);
 
     const [form,setForm]=useState({
         email:"",password:""
@@ -48,6 +54,8 @@ export default function LoginPage(){
             setLoading(false);
         }
     }
+
+    if (ready && user) return null;
 
     return(
         <div className="grid md:grid-cols-2 gap-10 items-start">

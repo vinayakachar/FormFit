@@ -114,14 +114,6 @@ const deleteExercise=async(req,res)=>{
 }
 
 
-export {getAllExercise,
-    getExerciseById,
-    updateExercise,
-    createExercise,
-    deleteExercise,
-    getExerciseExample
-};
-
 const getExerciseExample=async(req,res)=>{
  try{
     const name=(req.query.name || '').trim()
@@ -156,6 +148,62 @@ const getExerciseExample=async(req,res)=>{
     res.status(500).json({message:'Server Error'});
  }
 }
+
+const streamExerciseVideo = async (req, res) => {
+  try {
+    const rawUrl = req.query.url;
+    const directId = req.query.id;
+    let fileId = directId;
+    if (!fileId && rawUrl) {
+      const match = rawUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || rawUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      fileId = match ? match[1] : null;
+    }
+
+    if (!fileId) {
+      return res.status(400).json({ message: 'Missing file id or url' });
+    }
+
+    const driveUrl = `https://drive.usercontent.google.com/download?id=${encodeURIComponent(fileId)}&export=download`;
+    const headers = {};
+    if (req.headers.range) {
+      headers['Range'] = req.headers.range;
+    }
+
+    const driveRes = await fetch(driveUrl, { headers, redirect: 'follow' });
+
+    res.status(driveRes.status);
+    res.setHeader('Content-Type', driveRes.headers.get('content-type') || 'video/mp4');
+    res.setHeader('Accept-Ranges', 'bytes');
+    res.setHeader('Content-Disposition', 'inline');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    if (driveRes.headers.get('content-range')) {
+      res.setHeader('Content-Range', driveRes.headers.get('content-range'));
+    }
+    if (driveRes.headers.get('content-length')) {
+      res.setHeader('Content-Length', driveRes.headers.get('content-length'));
+    }
+
+    const { Readable } = await import('stream');
+    const nodeStream = Readable.fromWeb(driveRes.body);
+    nodeStream.pipe(res);
+  } catch (error) {
+    console.error('Stream exercise video error:', error.message);
+    res.status(500).json({ message: 'Error streaming video' });
+  }
+};
+
+export {
+    getAllExercise,
+    getExerciseById,
+    updateExercise,
+    createExercise,
+    deleteExercise,
+    getExerciseExample,
+    streamExerciseVideo
+};
+
+
  
 
 

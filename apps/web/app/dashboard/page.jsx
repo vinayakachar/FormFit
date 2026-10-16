@@ -14,7 +14,7 @@ import Modal from "@/components/ui/Modal";
 import ProfileCompletionPrompt from "@/components/ProfileCompletionPrompt";
 
 export default function DashboardPage(){
-  const { user, ready } = useAuth({ requireAuth: false });
+  const { user, ready } = useAuth({ requireAuth: true });
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [exercises, setExercises] = useState([]);
@@ -262,7 +262,7 @@ export default function DashboardPage(){
                 title="Select Quick Start Exercise">
                 <div className="space-y-4 max-h-96 overflow-y-auto mb-3">
                     {exercises.slice(0, 12).map((exercise) => (
-                        <Link key={exercise._id} href={`/exercise/${encodeURIComponent(exercise.name)}`}>
+                        <Link key={exercise._id} href={`/workout?exercise=${encodeURIComponent(exercise.name)}`}>
                             <Button
                                 onClick={() => setShowExerciseModal(false)}
                                 className="card-glass p-3! justify-start text-start hover:scale-105 transition-transform w-full"

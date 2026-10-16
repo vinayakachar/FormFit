@@ -74,7 +74,7 @@ function calorieGuidance(weightKg, heightCm, age) {
 
 
 export default function AIPlanPage(){
-    const {user,ready}=useAuth({requireAuth:false});
+    const {user,ready}=useAuth({requireAuth:true});
     const [apiKey,setApiKey]=useState("");
     const [remember,setRemember]=useState(false);
     const [loading, setLoading]=useState(false);
@@ -143,7 +143,7 @@ export default function AIPlanPage(){
     const plan = useMemo(() => planFromGoals(goals), [goals]);
     const calories = useMemo(() => calorieGuidance(user?.weight, user?.height, user?.age), [user]);
 
-  if (!ready) return null;
+  if (!ready || !user) return null;
 
   return(
     <div className="space-y-8">

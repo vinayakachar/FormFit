@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import api from "@/lib/apiClient";
+import useAuth from "@/hooks/useAuth";
 import { Dumbbell, Activity, LineChart, Brain } from "lucide-react";
 import {motion} from "framer-motion";
 
@@ -16,6 +17,13 @@ const fade = (d = 0) => ({
 });
 export default function RegisterPage(){
     const router = useRouter();
+    const { user, ready } = useAuth();
+
+    useEffect(() => {
+        if (ready && user) {
+            router.replace("/dashboard");
+        }
+    }, [ready, user, router]);
 
     const [form, setForm]=useState({
         name:"",
@@ -55,6 +63,8 @@ export default function RegisterPage(){
         }
 
     }
+
+    if (ready && user) return null;
 
     return(
         <div className="grid md:grid-cols-2 gap-10 items-start">

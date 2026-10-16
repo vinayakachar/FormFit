@@ -5,18 +5,22 @@ import {
     getExerciseById,
     createExercise,
     updateExercise,
-    deleteExercise } from "../controllers/exercise.controller.js";
+    deleteExercise,
+    streamExerciseVideo } from "../controllers/exercise.controller.js";
 
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { adminMiddleware } from "../middlewares/admin.middleware.js";
 
 const router=express.Router();
 
+router.get('/stream', streamExerciseVideo);
+
 router.get('/',authMiddleware,getAllExercise);
 
 router.get('/example',authMiddleware,getExerciseExample);
 
 router.get('/:id',authMiddleware,getExerciseById);
+
 
 router.post('/',authMiddleware,adminMiddleware,createExercise);
 

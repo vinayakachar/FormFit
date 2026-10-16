@@ -10,7 +10,7 @@ const MEAL_KEYS=["breakfast","lunch","dinner","snack"];
 const DEFAULT_SPLIT={breakfast:0.30, lunch:0.35, dinner:0.30, snack:0.05};
 
 export default function DietPage(){
-    const {user,ready}=useAuth({requireAuth:false});
+    const {user,ready}=useAuth({requireAuth:true});
     const [planDiet,setPlanDiet]=useState(null);
     const [log,setLog]=useState(null);
     const [date,setDate]=useState(()=>new Date());
@@ -38,7 +38,7 @@ const daySummary=useMemo(()=>({
     fats:meals.reduce((a,m)=>a+(m.fats||0),0)
 }));
 
-if(!ready) return null;
+if(!ready || !user) return null;
 
 function setMealStatus(key,status){
     const next={
