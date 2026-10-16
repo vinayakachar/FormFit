@@ -88,15 +88,18 @@ export default function AIPlanPage(){
     },[]);
 
     useEffect(()=>{
+        if (!ready || !user) return;
         (async()=>{
             try{
                 const {data}=await api.get("/plans/latest");
                 if (data?.plan) setRemotePlan(data.plan.planObject ? { planObject: data.plan.planObject } : { planText: data.plan.planText });
             }catch(error){
-                console.error("Failed to load latest plan:", error?.response?.data || error?.message);
+                if (error?.response?.status !== 401) {
+                    console.error("Failed to load latest plan:", error?.response?.data || error?.message);
+                }
             }
         })();
-    },[]);
+    },[ready,user]);
     
     async function handlegnerate(save=true) {
         if(!apiKey) return alert("Please Enter your Google Gemini API Key");
@@ -150,7 +153,7 @@ export default function AIPlanPage(){
                 <p className="text-sm text-brand-muted">Generate and review your weekly plan.</p>
             </div>
             <div className="flex items-center gap-3">
-                <Button href="/workout" className="card-glass py-2!">
+                <Button as="a" href="/workout" className="card-glass py-2!">
                    <Dumbbell className="mr-2"/>Start Workout
                 </Button>
                 <Button as="a" href="/diet" variant="secondary" className="card-glass py-2!">
