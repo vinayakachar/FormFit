@@ -140,16 +140,17 @@ const getExerciseExample=async(req,res)=>{
         }
     }
 
-    const tut=await Tutorial.findOne({title:name}.sort({order:`asc`}));
+    const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const tutorial = await Tutorial.findOne({
+        title: { $regex: escapedName, $options: 'i' },
+        videoUrl: { $exists: true, $ne: '' },
+    }).sort({ order: 1 });
 
-    if(tut && tut.videoUrl){
-        return res.status(200).json({name:tut.title,videoUrl:tut.videoUrl,source:'tutorial',tutorialId:tut._id});
+    if (tutorial) {
+        return res.status(200).json({name:tutorial.title,videoUrl:tutorial.videoUrl,source:'tutorial',tutorialId:tutorial._id});
     }
 
-    const tut2=await Tutorial.findOne({titel:{$regex:new RegExp(name,'i')}});
-    if(tut2 && tut2.videoUrl){
-        return res.status(200).json({name:tut2.title,videoUrl:tut2.videoUrl,source:'tutorial',tutorialId:tut2._id})
-    }
+    return res.status(404).json({message:'No example found for this exercise'});
  }catch(error){
     console.error('Get Exercise Example error',error.message);
     res.status(500).json({message:'Server Error'});

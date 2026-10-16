@@ -50,7 +50,7 @@ const exercises = [
         description: 'An upper-body strength exercise that involves pressing a weight overhead to develop the deltoid muscles.',
         difficulty: 'Intermediate',
         musclesTargeted: ['Deltoids', 'Triceps', 'Trapezius'],
-        videoUrl: 'https://example.com/videos/shoulderpress.mp4',
+        videoUrl: 'https://www.youtube.com/watch?v=0JfYxMRsUCQ',
     },
     {
         name: 'Jumping Jack',
@@ -64,14 +64,14 @@ const exercises = [
         description: 'A bodyweight exercise that targets the triceps by lowering and raising the body using a bench or chair.',
         difficulty: 'Intermediate',
         musclesTargeted: ['Triceps', 'Pectorals', 'Deltoids'],
-        videoUrl: 'https://example.com/videos/tricepdip.mp4',
+        videoUrl: 'https://www.youtube.com/shorts/0M2W8MgC8Qk',
     },
     {
         name: 'Mountain Climber',
         description: 'A dynamic, full-body exercise that mimics the motion of climbing, building core strength and endurance.',
         difficulty: 'Intermediate',
         musclesTargeted: ['Core', 'Deltoids', 'Glutes', 'Cardio'],
-        videoUrl: 'https://example.com/videos/mountainclimber.mp4',
+        videoUrl: 'https://www.youtube.com/watch?v=eJllA-pZlb8',
     },
 ];
 
@@ -80,7 +80,7 @@ const tutorials = [
     {
         title: "How to Do a Perfect Squat",
         description: "Learn the fundamentals of the bodyweight squat for strength and mobility.",
-        videoUrl: "https://www.youtube.com/watch?v=ultWZbEVQP4",
+        videoUrl: "https://www.youtube.com/watch?v=EufNIqV4O3Q",
         steps: [
             "Stand with your feet shoulder-width apart.",
             "Keep your chest up and your back straight.",
@@ -93,7 +93,7 @@ const tutorials = [
     {
         title: "Mastering the Push-Up",
         description: "A complete guide to the push-up, a foundational upper-body exercise.",
-        videoUrl: "https://www.youtube.com/watch?v=IODxDxX7oi4",
+        videoUrl: "https://www.youtube.com/watch?v=-WXc4E-zcao",
         steps: [
             "Start in a high plank position with hands under your shoulders.",
             "Keep your body in a straight line from head to heels.",

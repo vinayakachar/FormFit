@@ -79,17 +79,22 @@ const initializeSocket = (httpServer) => {
     socket.on('pose:update', (data) => {
       const session = activeSessions.get(socket.id);
       if (session && session.processor) {
-        const result = session.processor.process(data.poseLandmarks);
-        socket.emit('feedback:new', {
-          repCount: result.repCount,
-          feedback: result.feedback,
-          stage: result.stage,
-          score: typeof result.score === 'number' ? Math.max(0, Math.min(100, Math.round(result.score))) : undefined,
-        });
+        try {
+          const result = session.processor.process(data?.poseLandmarks);
+          socket.emit('feedback:new', {
+            repCount: result.repCount,
+            feedback: result.feedback,
+            stage: result.stage,
+            score: typeof result.score === 'number' ? Math.max(0, Math.min(100, Math.round(result.score))) : undefined,
+          });
 
-        const lastRepCount = session.repHistory.length > 0 ? session.repHistory[session.repHistory.length - 1] : 0;
-        if (result.repCount > lastRepCount) {
-          session.repHistory.push({ rep: result.repCount, timestamp: Date.now() });
+          const lastRepCount = session.repHistory.length > 0 ? session.repHistory[session.repHistory.length - 1].rep : 0;
+          if (result.repCount > lastRepCount) {
+            session.repHistory.push({ rep: result.repCount, timestamp: Date.now() });
+          }
+        } catch (error) {
+          console.error(`[Socket ${socket.id}] Failed to process pose frame:`, error);
+          socket.emit('error', { message: 'Could not process this camera frame. Please try again.' });
         }
       }
     });
