@@ -18,13 +18,21 @@ const app = express();
 
 dotenv.config();
 
-app.use(cors());
-app.use(helmet());
-app.use(express.json());
+const clientOrigin = process.env.CLIENT_URL
+    ? process.env.CLIENT_URL.split(',').map(s => s.trim())
+    : true;
 
-if (process.env.NODE_ENV === 'development') {
-    app.use(morgan('dev'));
-}
+app.use(cors({
+    origin: clientOrigin,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Range"],
+    exposedHeaders: ["Content-Range", "Accept-Ranges", "Content-Length", "Content-Disposition"]
+}));
+app.use(helmet({
+    crossOriginResourcePolicy: false,
+}));
+app.use(express.json());
 
 
 app.get('/', (req, res) => {
