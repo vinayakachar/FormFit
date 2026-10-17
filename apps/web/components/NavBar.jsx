@@ -81,7 +81,7 @@ export default function NavBar() {
                 href={item.href}
                 onClick={() => setIsOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all 
-                  ${isActive ? "text-brand-primary font-medium border border-band-primary/30"
+                  ${isActive ? "text-brand-primary font-medium border border-brand-primary/30"
                     : "text-brand-muted hover:text-brand-text hover:bg-white/5"
                   }`}
               >
