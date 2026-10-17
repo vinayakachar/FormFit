@@ -25,13 +25,9 @@ const exerciseProcessors = {
 const activeSessions = new Map();
 
 const initializeSocket = (httpServer) => {
-  const clientOrigin = process.env.CLIENT_URL
-    ? (process.env.CLIENT_URL.includes(',') ? process.env.CLIENT_URL.split(',').map(s => s.trim()) : process.env.CLIENT_URL)
-    : "*";
-
   const io = new Server(httpServer, {
     cors: {
-      origin: clientOrigin,
+      origin: (origin, callback) => callback(null, true),
       methods: ["GET", "POST"],
       credentials: true
     }

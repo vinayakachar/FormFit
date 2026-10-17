@@ -18,12 +18,26 @@ const app = express();
 
 dotenv.config();
 
-const clientOrigin = process.env.CLIENT_URL
-    ? process.env.CLIENT_URL.split(',').map(s => s.trim())
-    : true;
+const isAllowedOrigin = (origin) => {
+    if (!origin) return true;
+    if (origin.includes("localhost") || origin.includes("127.0.0.1")) return true;
+    if (origin.endsWith(".vercel.app")) return true;
+    if (process.env.CLIENT_URL) {
+        if (process.env.CLIENT_URL === "*") return true;
+        const list = process.env.CLIENT_URL.split(',').map(s => s.trim());
+        if (list.includes(origin)) return true;
+    }
+    return true;
+};
 
 app.use(cors({
-    origin: clientOrigin,
+    origin: (origin, callback) => {
+        if (isAllowedOrigin(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Range"],
