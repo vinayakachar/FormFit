@@ -53,6 +53,15 @@ app.get('/', (req, res) => {
     res.send('AI Fitness Trainer API is running');
 });
 
+app.get("/api/health", (req, res) => {
+    res.status(200).json({
+        status: "ok",
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
+    });
+});
+
+
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users',userRoutes);
 app.use('/api/v1/tutorials',tutorialRoutes);
